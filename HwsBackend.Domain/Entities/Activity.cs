@@ -1,4 +1,4 @@
-
+namespace HwsBackend.Domain.Entities;
 public class Activity {
     public int Id { get; set; }
     public string Title { get; set; } 
@@ -14,4 +14,5 @@ public class Activity {
     public int ExecutionOrder { get; set; } 
 
     public int GuideId { get; set; }
+    public Guide Guide { get; set; }
 }
