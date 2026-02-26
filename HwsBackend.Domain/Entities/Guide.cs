@@ -1,5 +1,6 @@
 namespace HwsBackend.Domain.Entities;
 
+
 using HwsBackend.Domain.Enums;
 public class Guide {
     public int Id { get; set; }

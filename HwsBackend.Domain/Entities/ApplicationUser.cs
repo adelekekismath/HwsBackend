@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Identity;
-using HwsBackend.Domain.Entities;
 
 namespace HwsBackend.Domain.Entities;
 
