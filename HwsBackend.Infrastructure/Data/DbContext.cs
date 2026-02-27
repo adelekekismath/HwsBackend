@@ -17,11 +17,16 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Activity>()
             .HasOne(a => a.Guide)
             .WithMany(g => g.Activities)
-            .HasForeignKey(a => a.GuideId);
+            .HasForeignKey(a => a.GuideId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Entity<ApplicationUser>()
-            .HasMany(u => u.InvitedGuides)
-            .WithMany(g => g.InvitedUsers)
-            .UsingEntity(j => j.ToTable("GuideInvitations"));
-    }
+        builder.Entity<Guide>()
+            .HasMany(g => g.InvitedUsers)
+            .WithMany(u => u.InvitedGuides)
+            .UsingEntity<Dictionary<string, object>>(
+                "GuideInvitations", 
+                j => j.HasOne<ApplicationUser>().WithMany().HasForeignKey("UserId"),
+                j => j.HasOne<Guide>().WithMany().HasForeignKey("GuideId")
+            );
+    }       
 }

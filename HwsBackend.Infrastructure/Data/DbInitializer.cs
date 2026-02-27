@@ -1,18 +1,19 @@
+using HwsBackend.Domain.Constants;
+using HwsBackend.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace HwsBackend.Infrastructure.Data;
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Identity;
-using HwsBackend.Domain.Entities;
 public static class DbInitializer
 {
     public static async Task SeedAsync(IServiceProvider serviceProvider)
     {
-        using var scope = serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        string[] roleNames = { "Admin", "User" };
+        // 1. Création des rôles si ils n'existent pas
+        string[] roleNames = { Roles.Admin, Roles.User };
         foreach (var roleName in roleNames)
         {
             if (!await roleManager.RoleExistsAsync(roleName))
@@ -21,17 +22,27 @@ public static class DbInitializer
             }
         }
 
+        // 2. Création de l'administrateur par défaut
         var adminEmail = "admin@hwstrip.com";
-        if (await userManager.FindByEmailAsync(adminEmail) == null)
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+        if (adminUser == null)
         {
-            var admin = new ApplicationUser 
-            { 
-                UserName = adminEmail, 
+            var admin = new ApplicationUser
+            {
+                UserName = adminEmail,
                 Email = adminEmail,
-                EmailConfirmed = true 
+                FirstName = "Henri",
+                LastName = "Trip",
+                EmailConfirmed = true
             };
-            await userManager.CreateAsync(admin, "HwsAdmin123!");
-            await userManager.AddToRoleAsync(admin, "Admin");
+
+            var result = await userManager.CreateAsync(admin, "Admin123!");
+
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(admin, Roles.Admin);
+            }
         }
     }
 }
