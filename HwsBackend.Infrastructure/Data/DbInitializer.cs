@@ -22,7 +22,6 @@ public static class DbInitializer
             }
         }
 
-        // 2. Création de l'administrateur par défaut
         var adminEmail = "admin@hwstrip.com";
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
 

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using HwsBackend.Infrastructure.Data;
 using HwsBackend.Domain.Entities;
 using HwsBackend.Domain.Constants;
+using HwsBackend.Application.DTOs;
 
 namespace HwsBackend.Api.Controllers;
 
@@ -17,13 +18,30 @@ public class ActivitiesController : ControllerBase
     public ActivitiesController(AppDbContext context) => _context = context;
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Activity activity)
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> Create([FromBody] ActivityCreateDto dto)
     {
-        var guideExists = await _context.Guides.AnyAsync(g => g.Id == activity.GuideId);
-        if (!guideExists) return NotFound("Guide non trouvé");
+
+        var guideExists = await _context.Guides.AnyAsync(g => g.Id == dto.GuideId);
+        if (!guideExists) return NotFound(new { message = "Le guide spécifié n'existe pas." });
+
+        var activity = new Activity
+        {
+            Title = dto.Title,
+            Description = dto.Description,
+            Category = dto.Category,
+            Address = dto.Address,
+            PhoneNumber = dto.PhoneNumber,
+            OpeningHours = dto.OpeningHours,
+            Website = dto.Website,
+            DayNumber = dto.DayNumber,
+            ExecutionOrder = dto.ExecutionOrder,
+            GuideId = dto.GuideId
+        };
 
         _context.Activities.Add(activity);
         await _context.SaveChangesAsync();
+
         return Ok(activity);
     }
 

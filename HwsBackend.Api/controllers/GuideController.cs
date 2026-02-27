@@ -5,6 +5,8 @@ using System.Security.Claims;
 using HwsBackend.Infrastructure.Data;
 using HwsBackend.Domain.Entities;
 using HwsBackend.Domain.Constants;
+using HwsBackend.Application.DTOs;
+using HwsBackend.Domain.Enums;
 
 namespace HwsBackend.Api.Controllers;
 
@@ -39,11 +41,21 @@ public class GuidesController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> Create([FromBody] Guide guide)
+    public async Task<IActionResult> Create([FromBody] GuideCreateDto guide)
     {
-        _context.Guides.Add(guide);
+        var newGuide = new Guide
+        {
+            Title = guide.Title,
+            Description = guide.Description,
+            DaysCount = guide.DaysCount,
+            Mobility = (MobilityType)guide.MobilityType,
+            Season = (Season)guide.Season,
+            Target = (TargetAudience)guide.TargetAudience
+        };
+
+        _context.Guides.Add(newGuide);
         await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetById), new { id = guide.Id }, guide);
+        return CreatedAtAction(nameof(GetById), new { id = newGuide.Id }, newGuide);
     }
 
     [HttpGet("{id}")]
