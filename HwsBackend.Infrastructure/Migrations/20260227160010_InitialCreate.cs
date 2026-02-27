@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace HwsBackend.Infrastructure.Migrations
 {
     /// <inheritdoc />
@@ -84,15 +86,37 @@ namespace HwsBackend.Infrastructure.Migrations
                     Description = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     DaysCount = table.Column<int>(type: "int", nullable: false),
-                    Mobility = table.Column<int>(type: "int", nullable: false),
-                    Season = table.Column<int>(type: "int", nullable: false),
-                    Target = table.Column<int>(type: "int", nullable: false),
+                    MobilityIds = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SeasonIds = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TargetAudienceIds = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     InvitedUserIds = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Guides", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ReferenceOptions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Type = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Label = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Value = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReferenceOptions", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -233,8 +257,7 @@ namespace HwsBackend.Infrastructure.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Category = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CategoryId = table.Column<int>(type: "int", nullable: false),
                     Address = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     PhoneNumber = table.Column<string>(type: "longtext", nullable: false)
@@ -263,27 +286,52 @@ namespace HwsBackend.Infrastructure.Migrations
                 name: "GuideInvitations",
                 columns: table => new
                 {
-                    InvitedGuidesId = table.Column<int>(type: "int", nullable: false),
-                    InvitedUsersId = table.Column<string>(type: "varchar(255)", nullable: false)
+                    GuideId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GuideInvitations", x => new { x.InvitedGuidesId, x.InvitedUsersId });
+                    table.PrimaryKey("PK_GuideInvitations", x => new { x.GuideId, x.UserId });
                     table.ForeignKey(
-                        name: "FK_GuideInvitations_AspNetUsers_InvitedUsersId",
-                        column: x => x.InvitedUsersId,
+                        name: "FK_GuideInvitations_AspNetUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GuideInvitations_Guides_InvitedGuidesId",
-                        column: x => x.InvitedGuidesId,
+                        name: "FK_GuideInvitations_Guides_GuideId",
+                        column: x => x.GuideId,
                         principalTable: "Guides",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.InsertData(
+                table: "ReferenceOptions",
+                columns: new[] { "Id", "Label", "Type", "Value" },
+                values: new object[,]
+                {
+                    { 1, "Printemps", "Season", "Spring" },
+                    { 2, "Été", "Season", "Summer" },
+                    { 3, "Automne", "Season", "Autumn" },
+                    { 4, "Hiver", "Season", "Winter" },
+                    { 5, "Toute l'année", "Season", "AllYear" },
+                    { 6, "Voiture", "Mobility", "Car" },
+                    { 7, "Vélo", "Mobility", "Bike" },
+                    { 8, "Moto", "Mobility", "Motorcycle" },
+                    { 9, "À pied", "Mobility", "Walking" },
+                    { 10, "Famille", "Target", "Family" },
+                    { 11, "Couple", "Target", "Couple" },
+                    { 12, "Groupe", "Target", "Group" },
+                    { 13, "Seul", "Target", "Solo" },
+                    { 14, "Musée", "ActivityCategory", "museum" },
+                    { 15, "Château", "ActivityCategory", "castle" },
+                    { 16, "Activité", "ActivityCategory", "activity" },
+                    { 17, "Parc", "ActivityCategory", "park" },
+                    { 18, "Grotte", "ActivityCategory", "cave" }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Activities_GuideId",
@@ -328,9 +376,9 @@ namespace HwsBackend.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_GuideInvitations_InvitedUsersId",
+                name: "IX_GuideInvitations_UserId",
                 table: "GuideInvitations",
-                column: "InvitedUsersId");
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -356,6 +404,9 @@ namespace HwsBackend.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "GuideInvitations");
+
+            migrationBuilder.DropTable(
+                name: "ReferenceOptions");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

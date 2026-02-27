@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HwsBackend.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260225142333_InitialCreate")]
+    [Migration("20260227160010_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -25,19 +25,19 @@ namespace HwsBackend.Infrastructure.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("ApplicationUserGuide", b =>
+            modelBuilder.Entity("GuideInvitations", b =>
                 {
-                    b.Property<int>("InvitedGuidesId")
+                    b.Property<int>("GuideId")
                         .HasColumnType("int");
 
-                    b.Property<string>("InvitedUsersId")
+                    b.Property<string>("UserId")
                         .HasColumnType("varchar(255)");
 
-                    b.HasKey("InvitedGuidesId", "InvitedUsersId");
+                    b.HasKey("GuideId", "UserId");
 
-                    b.HasIndex("InvitedUsersId");
+                    b.HasIndex("UserId");
 
-                    b.ToTable("GuideInvitations", (string)null);
+                    b.ToTable("GuideInvitations");
                 });
 
             modelBuilder.Entity("HwsBackend.Domain.Entities.Activity", b =>
@@ -52,9 +52,8 @@ namespace HwsBackend.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
 
                     b.Property<int>("DayNumber")
                         .HasColumnType("int");
@@ -181,14 +180,17 @@ namespace HwsBackend.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("Mobility")
-                        .HasColumnType("int");
+                    b.Property<string>("MobilityIds")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
-                    b.Property<int>("Season")
-                        .HasColumnType("int");
+                    b.Property<string>("SeasonIds")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
-                    b.Property<int>("Target")
-                        .HasColumnType("int");
+                    b.Property<string>("TargetAudienceIds")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -197,6 +199,159 @@ namespace HwsBackend.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Guides");
+                });
+
+            modelBuilder.Entity("HwsBackend.Domain.Entities.ReferenceOption", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ReferenceOptions");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Label = "Printemps",
+                            Type = "Season",
+                            Value = "Spring"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Label = "Été",
+                            Type = "Season",
+                            Value = "Summer"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Label = "Automne",
+                            Type = "Season",
+                            Value = "Autumn"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Label = "Hiver",
+                            Type = "Season",
+                            Value = "Winter"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Label = "Toute l'année",
+                            Type = "Season",
+                            Value = "AllYear"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Label = "Voiture",
+                            Type = "Mobility",
+                            Value = "Car"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Label = "Vélo",
+                            Type = "Mobility",
+                            Value = "Bike"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Label = "Moto",
+                            Type = "Mobility",
+                            Value = "Motorcycle"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Label = "À pied",
+                            Type = "Mobility",
+                            Value = "Walking"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Label = "Famille",
+                            Type = "Target",
+                            Value = "Family"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Label = "Couple",
+                            Type = "Target",
+                            Value = "Couple"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Label = "Groupe",
+                            Type = "Target",
+                            Value = "Group"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Label = "Seul",
+                            Type = "Target",
+                            Value = "Solo"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            Label = "Musée",
+                            Type = "ActivityCategory",
+                            Value = "museum"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            Label = "Château",
+                            Type = "ActivityCategory",
+                            Value = "castle"
+                        },
+                        new
+                        {
+                            Id = 16,
+                            Label = "Activité",
+                            Type = "ActivityCategory",
+                            Value = "activity"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            Label = "Parc",
+                            Type = "ActivityCategory",
+                            Value = "park"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            Label = "Grotte",
+                            Type = "ActivityCategory",
+                            Value = "cave"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -331,17 +486,17 @@ namespace HwsBackend.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("ApplicationUserGuide", b =>
+            modelBuilder.Entity("GuideInvitations", b =>
                 {
                     b.HasOne("HwsBackend.Domain.Entities.Guide", null)
                         .WithMany()
-                        .HasForeignKey("InvitedGuidesId")
+                        .HasForeignKey("GuideId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("HwsBackend.Domain.Entities.ApplicationUser", null)
                         .WithMany()
-                        .HasForeignKey("InvitedUsersId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
