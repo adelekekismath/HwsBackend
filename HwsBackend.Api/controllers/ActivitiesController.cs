@@ -5,10 +5,12 @@ using HwsBackend.Infrastructure.Data;
 using HwsBackend.Domain.Entities;
 using HwsBackend.Domain.Constants;
 using HwsBackend.Application.DTOs;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
 
 namespace HwsBackend.Api.Controllers;
 
-[Authorize(Roles = Roles.Admin)] 
+[Authorize] 
 [ApiController]
 [Route("api/[controller]")]
 public class ActivitiesController : ControllerBase
@@ -17,11 +19,35 @@ public class ActivitiesController : ControllerBase
 
     public ActivitiesController(AppDbContext context) => _context = context;
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var activities = await _context.Activities.Include(a => a.Guide).ToListAsync();
+        return Ok(activities);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var activity = await _context.Activities.Include(a => a.Guide).FirstOrDefaultAsync(a => a.Id == id);
+        if (activity == null) return NotFound();
+
+        if (!User.IsInRole(Roles.Admin))
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isInvited = await _context.Guides.AnyAsync(g => g.Id == activity.GuideId && g.InvitedUsers.Any(u => u.Id == userId));
+            if (!isInvited) return Forbid();
+        }
+
+        return Ok(activity);
+    }
+
     [HttpPost]
-    [Authorize(Roles = Roles.Admin)]
+    [Authorize(Roles = Roles.Admin)] 
     public async Task<IActionResult> Create([FromBody] ActivityCreateDto dto)
     {
-
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        
         var guideExists = await _context.Guides.AnyAsync(g => g.Id == dto.GuideId);
         if (!guideExists) return NotFound(new { message = "Le guide spécifié n'existe pas." });
 
@@ -29,7 +55,7 @@ public class ActivitiesController : ControllerBase
         {
             Title = dto.Title,
             Description = dto.Description,
-            Category = dto.Category,
+            CategoryId = dto.CategoryId, 
             Address = dto.Address,
             PhoneNumber = dto.PhoneNumber,
             OpeningHours = dto.OpeningHours,
@@ -42,27 +68,34 @@ public class ActivitiesController : ControllerBase
         _context.Activities.Add(activity);
         await _context.SaveChangesAsync();
 
-        return Ok(activity);
+        return CreatedAtAction(nameof(GetById), new { id = activity.Id }, activity);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] Activity activity)
+    [Authorize(Roles = Roles.Admin)] 
+    public async Task<IActionResult> Update(int id, [FromBody] ActivityUpdateDto dto)
     {
-        if (id != activity.Id) return BadRequest();
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        _context.Entry(activity).State = EntityState.Modified;
-        
-        try {
-            await _context.SaveChangesAsync();
-        } catch (DbUpdateConcurrencyException) {
-            if (!ActivityExists(id)) return NotFound();
-            throw;
-        }
+        var activity = await _context.Activities.FindAsync(id);
+        if (activity == null) return NotFound();
 
+        activity.Title = dto.Title;
+        activity.Description = dto.Description;
+        activity.CategoryId = dto.CategoryId;
+        activity.Address = dto.Address;
+        activity.PhoneNumber = dto.PhoneNumber;
+        activity.OpeningHours = dto.OpeningHours;
+        activity.Website = dto.Website;
+        activity.DayNumber = dto.DayNumber;
+        activity.ExecutionOrder = dto.ExecutionOrder;
+
+        await _context.SaveChangesAsync();
         return NoContent();
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = Roles.Admin)] 
     public async Task<IActionResult> Delete(int id)
     {
         var activity = await _context.Activities.FindAsync(id);
@@ -72,6 +105,4 @@ public class ActivitiesController : ControllerBase
         await _context.SaveChangesAsync();
         return NoContent();
     }
-
-    private bool ActivityExists(int id) => _context.Activities.Any(e => e.Id == id);
 }
